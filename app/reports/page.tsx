@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import AuthGate from "../components/AuthGate";
 import JalaliDatePicker from "../components/JalaliDatePicker";
 import Pagination from "../components/Pagination";
-import { formatCaseParties, formatDate, getCasesForExpert, getDelayDays, getEffectiveCaseStatus, toPersianDigits, type CaseRecord } from "../lib/cases";
+import { fetchCasesFromDatabase, formatCaseParties, formatDate, getDelayDays, getEffectiveCaseStatus, toPersianDigits, type CaseRecord } from "../lib/cases";
 import { getCurrentExpert } from "../lib/experts";
 
 type StatusFilter = "all" | "completed" | "notCompleted" | CaseRecord["status"];
@@ -44,8 +44,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const expert = getCurrentExpert();
-      setCases(expert ? getCasesForExpert(expert.id) : []);
+      void fetchCasesFromDatabase().then(setCases).catch(() => setCases([]));
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);

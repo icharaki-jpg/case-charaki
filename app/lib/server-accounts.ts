@@ -2,13 +2,17 @@ import "server-only";
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { eq, or } from "drizzle-orm";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { getDb } from "../../db";
+import { expertAccounts, experts } from "../../db/schema";
 
 const accountsFile = path.join(process.cwd(), "data", "expert-accounts.json");
 const passwordSaltBytes = 16;
 const passwordKeyBytes = 64;
 
 export type ServerExpertAccount = {
+  expertId: string;
   email: string;
   nationalId: string;
   passwordCredential: string;
@@ -41,8 +45,6 @@ export async function registerServerExpertAccount(input: {
   nationalId: string;
   password: string;
 }) {
-  await ensureLoaded();
-
   const email = input.email.trim().toLowerCase();
   const nationalId = normalizeNationalId(input.nationalId);
   const password = input.password;
@@ -53,35 +55,54 @@ export async function registerServerExpertAccount(input: {
   if (password.length < 8 || password.length > 128) {
     return { ok: false as const, reason: "password" as const };
   }
-  if ([...state.accounts.values()].some((account) => account.email === email)) {
+  const database = getDb();
+  const existing = await database.select({ email: experts.email, nationalId: experts.nationalId })
+    .from(experts)
+    .where(or(eq(experts.email, email), eq(experts.nationalId, nationalId))).limit(1);
+  if (existing[0]?.email === email) {
     return { ok: false as const, reason: "emailExists" as const };
   }
-  if (state.accounts.has(nationalId)) {
+  if (existing[0]?.nationalId === nationalId) {
     return { ok: false as const, reason: "nationalIdExists" as const };
   }
 
-  const now = new Date().toISOString();
-  const account: ServerExpertAccount = {
+  const now = new Date();
+  const [expert] = await database.insert(experts).values({
+    fullName: "",
+    nationalId,
+    phone: "",
+    email,
+    expertise: "",
+    licenseNumber: "",
+    membershipDate: now.toISOString().slice(0, 10),
+    address: "",
+    notes: "",
+    status: "active",
+    verificationStatus: "verified",
+  }).returning();
+  const [account] = await database.insert(expertAccounts).values({
+    expertId: expert.id,
     email,
     nationalId,
     passwordCredential: createPasswordCredential(password),
-    createdAt: now,
-    verifiedAt: now,
+  }).returning();
+  return {
+    ok: true as const,
+    account: {
+      ...account,
+      createdAt: account.createdAt.toISOString(),
+      verifiedAt: account.verifiedAt.toISOString(),
+    },
   };
-  state.accounts.set(nationalId, account);
-  await persist();
-
-  return { ok: true as const, account };
 }
 
 export async function authenticateServerExpert(input: {
   nationalId: string;
   password: string;
 }) {
-  await ensureLoaded();
-
   const nationalId = normalizeNationalId(input.nationalId);
-  const account = state.accounts.get(nationalId);
+  const [account] = await getDb().select().from(expertAccounts)
+    .where(eq(expertAccounts.nationalId, nationalId)).limit(1);
   if (!account || !verifyPasswordCredential(input.password, account.passwordCredential)) {
     return undefined;
   }
@@ -93,11 +114,10 @@ export async function findServerExpertAccount(input: {
   nationalId: string;
   email: string;
 }) {
-  await ensureLoaded();
-
   const nationalId = normalizeNationalId(input.nationalId);
   const email = input.email.trim().toLowerCase();
-  const account = state.accounts.get(nationalId);
+  const [account] = await getDb().select().from(expertAccounts)
+    .where(eq(expertAccounts.nationalId, nationalId)).limit(1);
   return account?.email === email ? account : undefined;
 }
 
@@ -106,10 +126,9 @@ export async function changeServerExpertPassword(input: {
   currentPassword: string;
   newPassword: string;
 }) {
-  await ensureLoaded();
-
   const nationalId = normalizeNationalId(input.nationalId);
-  const account = state.accounts.get(nationalId);
+  const [account] = await getDb().select().from(expertAccounts)
+    .where(eq(expertAccounts.nationalId, nationalId)).limit(1);
   if (!account || !verifyPasswordCredential(input.currentPassword, account.passwordCredential)) {
     return { ok: false as const, reason: "currentPassword" as const };
   }
@@ -120,12 +139,10 @@ export async function changeServerExpertPassword(input: {
     return { ok: false as const, reason: "samePassword" as const };
   }
 
-  const updatedAccount: ServerExpertAccount = {
-    ...account,
+  await getDb().update(expertAccounts).set({
     passwordCredential: createPasswordCredential(input.newPassword),
-  };
-  state.accounts.set(nationalId, updatedAccount);
-  await persist();
+    updatedAt: new Date(),
+  }).where(eq(expertAccounts.expertId, account.expertId));
 
   return { ok: true as const };
 }
@@ -135,11 +152,10 @@ export async function resetServerExpertPassword(input: {
   email: string;
   newPassword: string;
 }) {
-  await ensureLoaded();
-
   const nationalId = normalizeNationalId(input.nationalId);
   const email = input.email.trim().toLowerCase();
-  const account = state.accounts.get(nationalId);
+  const [account] = await getDb().select().from(expertAccounts)
+    .where(eq(expertAccounts.nationalId, nationalId)).limit(1);
   if (!account || account.email !== email) {
     return { ok: false as const, reason: "account" as const };
   }
@@ -150,11 +166,10 @@ export async function resetServerExpertPassword(input: {
     return { ok: false as const, reason: "samePassword" as const };
   }
 
-  state.accounts.set(nationalId, {
-    ...account,
+  await getDb().update(expertAccounts).set({
     passwordCredential: createPasswordCredential(input.newPassword),
-  });
-  await persist();
+    updatedAt: new Date(),
+  }).where(eq(expertAccounts.expertId, account.expertId));
 
   return { ok: true as const };
 }

@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { getDb } from "../../../../db";
+import { experts } from "../../../../db/schema";
 import {
   authenticateServerExpert,
   isValidNationalId,
   normalizeNationalId,
-} from "../../../lib/server-accounts";
+} from "../../../lib/server-accounts-db";
 import {
   createServerSession,
   getSessionCookieOptions,
   sessionCookieName,
-} from "../../../lib/server-session";
+} from "../../../lib/server-session-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,6 +62,7 @@ export async function POST(request: Request) {
     email: session.email,
     nationalId: session.nationalId,
     expiresAt: session.expiresAt,
+    expert: (await getDb().select().from(experts).where(eq(experts.nationalId, account.nationalId)).limit(1))[0] ?? null,
   });
   response.cookies.set(sessionCookieName, token, getSessionCookieOptions(request));
   return response;

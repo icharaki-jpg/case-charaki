@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AuthGate from "../components/AuthGate";
 import Pagination from "../components/Pagination";
-import { formatCaseParties, formatDate, getCasesForExpert, getDelayDays, getEffectiveCaseStatus, toPersianDigits, type CaseRecord } from "../lib/cases";
+import { fetchCasesFromDatabase, formatCaseParties, formatDate, getDelayDays, getEffectiveCaseStatus, toPersianDigits, type CaseRecord } from "../lib/cases";
 import { getCurrentExpert } from "../lib/experts";
 
 const labels: Record<CaseRecord["status"], string> = { new: "جدید", inProgress: "در حال بررسی", completed: "تکمیل‌شده", overdue: "عقب‌افتاده" };
@@ -17,8 +17,7 @@ export default function CasesPage() {
   const [page, setPage] = useState(1);
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const expert = getCurrentExpert();
-      setCases(expert ? getCasesForExpert(expert.id) : []);
+      void fetchCasesFromDatabase().then(setCases).catch(() => setCases([]));
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);

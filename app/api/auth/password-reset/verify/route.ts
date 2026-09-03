@@ -3,7 +3,7 @@ import {
   isValidNationalId,
   normalizeNationalId,
   resetServerExpertPassword,
-} from "../../../../lib/server-accounts";
+} from "../../../../lib/server-accounts-db";
 import { verifyVerificationChallenge } from "../../../../lib/server-challenges";
 
 export const runtime = "nodejs";

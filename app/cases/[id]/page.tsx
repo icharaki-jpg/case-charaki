@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import AuthGate from "../../components/AuthGate";
-import { formatAmount, formatDate, getCaseForExpert, getDelayDays, getEffectiveCaseStatus, removeCase, toPersianDigits, updateCaseStatus, type CaseRecord } from "../../lib/cases";
+import { deleteCaseFromDatabase, fetchCaseFromDatabase, formatAmount, formatDate, getDelayDays, getEffectiveCaseStatus, toPersianDigits, updateCaseInDatabase, type CaseRecord } from "../../lib/cases";
 import { getCurrentExpert } from "../../lib/experts";
 
 const labels: Record<CaseRecord["status"], string> = { new: "جدید", inProgress: "در حال بررسی", completed: "تکمیل‌شده", overdue: "عقب‌افتاده" };
@@ -15,8 +15,7 @@ export default function CaseDetailsPage() {
   useEffect(() => {
     const timer = window.setTimeout(
       () => {
-        const expert = getCurrentExpert();
-        setItem(expert ? getCaseForExpert(id, expert.id) : undefined);
+        void fetchCaseFromDatabase(id).then(setItem).catch(() => setItem(undefined));
       },
       0,
     );
@@ -29,13 +28,11 @@ export default function CaseDetailsPage() {
   const expert = getCurrentExpert();
   function changeStatus(status: CaseRecord["status"]) {
     if (!expert) return;
-    updateCaseStatus(currentItem.id, status, expert.id);
-    setItem({ ...currentItem, status });
+    void updateCaseInDatabase(currentItem.id, { status }).then(setItem).catch(() => undefined);
   }
   function handleDelete() {
     if (expert && window.confirm("آیا از حذف این پرونده مطمئن هستید؟")) {
-      removeCase(currentItem.id, expert.id);
-      router.push("/cases");
+      void deleteCaseFromDatabase(currentItem.id).then(() => router.push("/cases"));
     }
   }
   return <AuthGate><div className="page-shell narrow"><div className="page-header"><div><p className="eyebrow">جزئیات پرونده</p><h1>{toPersianDigits(item.caseNumber)}</h1><p className="muted">{toPersianDigits(item.expertOrder)}</p></div><Link href="/cases" className="button button-secondary">بازگشت</Link></div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AuthGate from "../../../components/AuthGate";
 import CaseForm from "../../../components/CaseForm";
-import { getCaseForExpert, toPersianDigits, type CaseRecord } from "../../../lib/cases";
+import { fetchCaseFromDatabase, toPersianDigits, type CaseRecord } from "../../../lib/cases";
 import { getCurrentExpert } from "../../../lib/experts";
 
 export default function EditCasePage() {
@@ -14,8 +14,7 @@ export default function EditCasePage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const expert = getCurrentExpert();
-      setItem(expert ? getCaseForExpert(id, expert.id) : undefined);
+      void fetchCaseFromDatabase(id).then(setItem).catch(() => setItem(undefined));
     }, 0);
     return () => window.clearTimeout(timer);
   }, [id]);

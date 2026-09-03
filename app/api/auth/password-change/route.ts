@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { changeServerExpertPassword } from "../../../lib/server-accounts";
-import { getServerSession } from "../../../lib/server-session";
+import { changeServerExpertPassword } from "../../../lib/server-accounts-db";
+import { getServerSession } from "../../../lib/server-session-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

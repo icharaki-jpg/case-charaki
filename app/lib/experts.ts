@@ -312,12 +312,9 @@ export function cancelPendingRegistration(emailValue: string) {
 
 export async function loginExpert(nationalIdValue: string, password: string) {
   const nationalId = normalizeNationalId(nationalIdValue);
-  const expert = getExperts().find(
+  const localExpert = getExperts().find(
     (item) => item.nationalId === nationalId && item.verificationStatus === "verified",
   );
-  if (!expert) {
-    throw new Error("کارشناس تأییدشده‌ای با این کد ملی پیدا نشد.");
-  }
 
   const response = await fetch("/api/auth/password-login", {
     method: "POST",
@@ -330,8 +327,16 @@ export async function loginExpert(nationalIdValue: string, password: string) {
     throw new Error(body.error || "کد ملی یا رمز عبور نادرست است.");
   }
 
-  markExpertSession(nationalId);
-  return expert;
+  const serverExpert = body.expert as ExpertRecord | null | undefined;
+  if (serverExpert) {
+    saveExperts([serverExpert, ...getExperts().filter((item) => item.id !== serverExpert.id)]);
+    window.localStorage.setItem(
+      sessionKey,
+      JSON.stringify({ expertId: serverExpert.id, loggedInAt: new Date().toISOString() }),
+    );
+    window.dispatchEvent(new Event("expert-auth-changed"));
+  }
+  return serverExpert ?? localExpert;
 }
 
 export async function requestPasswordResetCode(
@@ -547,6 +552,7 @@ async function readJsonResponse(response: Response) {
       challengeId?: string;
       devCode?: string;
       expiresAt?: number;
+      expert?: ExpertRecord | null;
     };
   } catch {
     return {};

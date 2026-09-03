@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { getDb } from "../../../../db";
-import { expertAccounts, experts } from "../../../../db/schema";
-import { eq } from "drizzle-orm";
 import { verifyVerificationChallenge } from "../../../lib/server-challenges";
 import {
   isValidNationalId,
   normalizeNationalId,
   registerServerExpertAccount,
-} from "../../../lib/server-accounts";
+} from "../../../lib/server-accounts-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -82,31 +79,6 @@ export async function POST(request: Request) {
             ? "رمز عبور باید حداقل ۸ کاراکتر باشد."
             : "اطلاعات حساب کارشناس نامعتبر است.";
     return NextResponse.json({ error: message }, { status: 409 });
-  }
-
-  const db = getDb();
-  const existingExpert = await db.select({ id: experts.id }).from(experts)
-    .where(eq(experts.nationalId, account.account.nationalId)).limit(1);
-  if (!existingExpert[0]) {
-    const createdExpert = await db.insert(experts).values({
-      fullName: "",
-      nationalId: account.account.nationalId,
-      phone: "",
-      email: account.account.email,
-      expertise: "",
-      licenseNumber: "",
-      membershipDate: new Date().toISOString().slice(0, 10),
-      address: "",
-      notes: "",
-      status: "active",
-      verificationStatus: "verified",
-    }).returning({ id: experts.id });
-    await db.insert(expertAccounts).values({
-      expertId: createdExpert[0].id,
-      email: account.account.email,
-      nationalId: account.account.nationalId,
-      passwordCredential: account.account.passwordCredential,
-    });
   }
 
   return NextResponse.json({

@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getCurrentExpert,
-  hasServerSession,
-  loginExpert,
-} from "../lib/experts";
+import { hasServerSession, loginExpert } from "../lib/experts";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,8 +17,7 @@ export default function LoginPage() {
     let cancelled = false;
 
     async function checkExistingSession() {
-      const currentExpert = getCurrentExpert();
-      if (currentExpert && (await hasServerSession(currentExpert.email))) {
+      if (await hasServerSession()) {
         router.replace("/");
         return;
       }

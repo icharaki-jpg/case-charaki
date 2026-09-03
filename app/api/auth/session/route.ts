@@ -4,7 +4,7 @@ import {
   getServerSession,
   getSessionCookieOptions,
   sessionCookieName,
-} from "../../../lib/server-session";
+} from "../../../lib/server-session-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -45,6 +45,64 @@ export function getCasesForExpert(expertId: string) {
   return getCases().filter((item) => item.expertId === normalizedExpertId);
 }
 
+export async function fetchCasesFromDatabase(): Promise<CaseRecord[]> {
+  const response = await fetch("/api/cases", { credentials: "same-origin", cache: "no-store" });
+  if (!response.ok) throw new Error("دریافت پرونده‌ها انجام نشد.");
+  const body = (await response.json()) as { cases?: CaseRecord[] };
+  return body.cases ?? [];
+}
+
+export async function fetchCaseFromDatabase(id: string): Promise<CaseRecord | undefined> {
+  const response = await fetch(`/api/cases/${id}`, {
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  if (response.status === 404) return undefined;
+  if (!response.ok) throw new Error("دریافت پرونده انجام نشد.");
+  const body = (await response.json()) as { case?: CaseRecord };
+  return body.case;
+}
+
+export async function createCaseInDatabase(
+  data: Omit<CaseRecord, "id" | "createdAt" | "status" | "expertId">,
+) {
+  const response = await fetch("/api/cases", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const body = (await response.json().catch(() => ({}))) as { case?: CaseRecord; error?: string };
+  if (!response.ok || !body.case) throw new Error(body.error ?? "ثبت پرونده انجام نشد.");
+  return body.case;
+}
+
+export async function updateCaseInDatabase(
+  id: string,
+  data: Partial<CaseRecord>,
+) {
+  const response = await fetch(`/api/cases/${id}`, {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const body = (await response.json().catch(() => ({}))) as { case?: CaseRecord; error?: string };
+  if (!response.ok || !body.case) throw new Error(body.error ?? "ذخیره پرونده انجام نشد.");
+  return body.case;
+}
+
+export async function deleteCaseFromDatabase(id: string) {
+  const response = await fetch(`/api/cases/${id}`, {
+    method: "DELETE",
+    credentials: "same-origin",
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "حذف پرونده انجام نشد.");
+  }
+}
+
 export function getUnassignedCases() {
   return getCases().filter((item) => !item.expertId);
 }

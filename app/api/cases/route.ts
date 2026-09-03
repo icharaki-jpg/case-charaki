@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { cases, experts } from "../../../db/schema";
-import { getServerSession } from "../../lib/server-session";
+import { getServerSession } from "../../lib/server-session-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

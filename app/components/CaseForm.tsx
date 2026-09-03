@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import JalaliDatePicker from "./JalaliDatePicker";
-import { addCase, formatAmount, normalizeAmount, toLatinDigits, toPersianDigits, updateCase, type CaseRecord } from "../lib/cases";
+import { createCaseInDatabase, formatAmount, normalizeAmount, toLatinDigits, toPersianDigits, updateCaseInDatabase, type CaseRecord } from "../lib/cases";
 import { getCurrentExpert } from "../lib/experts";
 
 type CaseFormData = Pick<
@@ -38,7 +38,7 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
   const router = useRouter();
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const data = Object.fromEntries(new FormData(event.currentTarget).entries()) as Record<string, string>;
@@ -98,11 +98,14 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
     };
 
     if (initialCase) {
-      updateCase(initialCase.id, formData, expert.id);
-      router.push(`/cases/${initialCase.id}`);
-    } else {
-      addCase(formData, expert.id);
-      router.push("/cases");
+      try {
+        const saved = initialCase
+          ? await updateCaseInDatabase(initialCase.id, formData)
+          : await createCaseInDatabase(formData);
+        router.push(`/cases/${saved.id}`);
+      } catch (saveError) {
+        setError(saveError instanceof Error ? saveError.message : "ذخیره پرونده انجام نشد.");
+      }
     }
   }
 

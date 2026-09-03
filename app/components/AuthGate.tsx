@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { getCurrentExpert, hasServerSession } from "../lib/experts";
+import { hasServerSession } from "../lib/experts";
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -14,14 +14,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function checkAccess() {
-      const expert = getCurrentExpert();
-      if (!expert) {
-        router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-        if (!cancelled) setChecking(false);
-        return;
-      }
-
-      const sessionIsValid = await hasServerSession(expert.email);
+      const sessionIsValid = await hasServerSession();
       if (cancelled) return;
       if (sessionIsValid) {
         setAuthorized(true);
