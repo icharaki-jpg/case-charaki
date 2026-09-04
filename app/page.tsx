@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AuthGate from "./components/AuthGate";
 import {
-  assignUnassignedCases,
+  fetchCasesFromDatabase,
   formatCaseParties,
   formatDate,
-  getUnassignedCases,
-  getCasesForExpert,
   getDelayDays,
   getDaysUntilDate,
   getEffectiveCaseStatus,
@@ -38,16 +36,20 @@ export default function DashboardPage() {
   const [reminderDays, setReminderDays] = useState(2);
 
   useEffect(() => {
-    function loadDashboardData() {
+    async function loadDashboardData() {
       const expert = getCurrentExpert();
       setExpertName(expert?.fullName ?? "");
-      setCases(expert ? getCasesForExpert(expert.id) : []);
-      setUnassignedCount(expert ? getUnassignedCases().length : 0);
       setReminderEnabled(expert?.meetingReminderEnabled ?? true);
       setReminderDays(normalizeMeetingReminderDays(expert?.meetingReminderDays));
+      try {
+        setCases(await fetchCasesFromDatabase());
+      } catch {
+        setCases([]);
+      }
+      setUnassignedCount(0);
     }
 
-    const timer = window.setTimeout(loadDashboardData, 0);
+    const timer = window.setTimeout(() => void loadDashboardData(), 0);
     window.addEventListener("expert-auth-changed", loadDashboardData);
     return () => {
       window.clearTimeout(timer);
@@ -63,9 +65,7 @@ export default function DashboardPage() {
     );
     if (!confirmed) return;
 
-    const ownedCases = assignUnassignedCases(expert.id);
-    setCases(ownedCases);
-    setUnassignedCount(getUnassignedCases().length);
+    setUnassignedCount(0);
   }
 
   const stats = useMemo(() => {
