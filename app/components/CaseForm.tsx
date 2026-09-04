@@ -53,7 +53,7 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       setError("تاریخ‌ها را از تقویم انتخاب کنید یا با قالب شمسی ۱۴۰۵/۰۵/۲۸ وارد کنید.");
       return;
     }
-    if (!data.referralSource?.trim() || !data.expertOrder?.trim() || !data.claimant?.trim() || !data.respondent?.trim()) {
+    if (!data.referralSource?.trim() || !data.claimant?.trim() || !data.respondent?.trim()) {
       setError("لطفاً همه‌ی فیلدهای ضروری پرونده را تکمیل کنید.");
       return;
     }
@@ -113,7 +113,7 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       <div className="form-grid">
         <Field label="شماره پرونده" name="caseNumber" placeholder="شماره بایگانی ۷ رقمی" defaultValue={toPersianDigits(initialCase?.caseNumber ?? "")} inputMode="numeric" maxLength={7} pattern="[0-9۰-۹]{7}" required numeric />
         <Field label="مرجع ارجاع‌دهنده" name="referralSource" placeholder="مثلاً شعبه دوم دادگاه حقوقی" defaultValue={initialCase?.referralSource} required />
-        <Field label="قرار کارشناسی" name="expertOrder" placeholder="متن یا شرح قرار کارشناسی" defaultValue={initialCase?.expertOrder} required wide textarea />
+        <Field label="قرار کارشناسی" name="expertOrder" placeholder="اختیاری؛ متن یا شرح قرار کارشناسی" defaultValue={initialCase?.expertOrder} wide textarea />
         <JalaliDatePicker label="تاریخ ارجاع" name="referralDate" initialValue={initialCase?.referralDate} required />
         <JalaliDatePicker label="تاریخ جلسه کارشناسی" name="meetingDate" initialValue={initialCase?.meetingDate} />
         <Field label="ساعت جلسه کارشناسی" name="meetingTime" placeholder="مثلاً ۰۸:۳۰" defaultValue={formatTimeInput(initialCase?.meetingTime)} inputMode="numeric" maxLength={5} time />

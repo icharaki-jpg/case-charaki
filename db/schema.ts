@@ -72,7 +72,7 @@ export const cases = pgTable(
     expertId: uuid("expert_id").references(() => experts.id, { onDelete: "set null" }),
     caseNumber: text("case_number").notNull(),
     referralSource: text("referral_source").notNull(),
-    expertOrder: text("expert_order").notNull(),
+    expertOrder: text("expert_order").default(""),
     referralDate: text("referral_date").notNull(),
     meetingDate: text("meeting_date").notNull(),
     meetingTime: text("meeting_time").notNull(),
