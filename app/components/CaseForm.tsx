@@ -36,9 +36,11 @@ const phoneFields = [
 export default function CaseForm({ initialCase, submitLabel = "ثبت پرونده" }: { initialCase?: CaseRecord; submitLabel?: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     setError("");
     const data = Object.fromEntries(new FormData(event.currentTarget).entries()) as Record<string, string>;
     const caseNumber = toLatinDigits(data.caseNumber?.trim() ?? "");
@@ -49,6 +51,10 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
     }
     if (!data.referralDate || !data.deadline) {
       setError("تاریخ‌ها را از تقویم انتخاب کنید یا با قالب شمسی ۱۴۰۵/۰۵/۲۸ وارد کنید.");
+      return;
+    }
+    if (!data.referralSource?.trim() || !data.expertOrder?.trim() || !data.claimant?.trim() || !data.respondent?.trim()) {
+      setError("لطفاً همه‌ی فیلدهای ضروری پرونده را تکمیل کنید.");
       return;
     }
     if (data.deadline < data.referralDate) {
@@ -91,17 +97,19 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
     };
 
     try {
-        const saved = initialCase
-          ? await updateCaseInDatabase(initialCase.id, formData)
-          : await createCaseInDatabase(formData);
-        router.push(`/cases/${saved.id}`);
-      } catch (saveError) {
-        setError(saveError instanceof Error ? saveError.message : "ذخیره پرونده انجام نشد.");
+      setSaving(true);
+      const saved = initialCase
+        ? await updateCaseInDatabase(initialCase.id, formData)
+        : await createCaseInDatabase(formData);
+      router.push(`/cases/${saved.id}`);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "ذخیره پرونده انجام نشد.");
+      setSaving(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="content-card form-card">
+    <form onSubmit={handleSubmit} noValidate className="content-card form-card">
       <div className="form-grid">
         <Field label="شماره پرونده" name="caseNumber" placeholder="شماره بایگانی ۷ رقمی" defaultValue={toPersianDigits(initialCase?.caseNumber ?? "")} inputMode="numeric" maxLength={7} pattern="[0-9۰-۹]{7}" required numeric />
         <Field label="مرجع ارجاع‌دهنده" name="referralSource" placeholder="مثلاً شعبه دوم دادگاه حقوقی" defaultValue={initialCase?.referralSource} required />
@@ -124,7 +132,9 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       {error && <p className="form-error">{error}</p>}
       <div className="form-actions">
         <button type="button" className="button button-secondary" onClick={() => router.push(initialCase ? `/cases/${initialCase.id}` : "/cases")}>انصراف</button>
-        <button type="submit" className="button button-primary">{submitLabel}</button>
+        <button type="submit" className="button button-primary" disabled={saving}>
+          {saving ? "در حال ذخیره..." : submitLabel}
+        </button>
       </div>
     </form>
   );
