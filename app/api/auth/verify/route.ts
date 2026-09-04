@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyVerificationChallenge } from "../../../lib/server-challenges";
+import { verifyVerificationChallenge } from "../../../lib/server-challenges-db";
 import {
   isValidNationalId,
   normalizeNationalId,
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "کد تأیید باید شش رقم باشد." }, { status: 400 });
   }
 
-  const result = verifyVerificationChallenge(body.challengeId, body.email, code);
+  const result = await verifyVerificationChallenge(body.challengeId, body.email, code);
   if (!result.ok) {
     const message =
       result.reason === "missing"

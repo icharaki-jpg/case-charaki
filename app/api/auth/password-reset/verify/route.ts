@@ -4,7 +4,7 @@ import {
   normalizeNationalId,
   resetServerExpertPassword,
 } from "../../../../lib/server-accounts-db";
-import { verifyVerificationChallenge } from "../../../../lib/server-challenges";
+import { verifyVerificationChallenge } from "../../../../lib/server-challenges-db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "رمز جدید باید حداقل ۸ کاراکتر باشد." }, { status: 400 });
   }
 
-  const result = verifyVerificationChallenge(body.challengeId, email, code);
+  const result = await verifyVerificationChallenge(body.challengeId, email, code);
   if (!result.ok) {
     const message =
       result.reason === "missing"

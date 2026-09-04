@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createVerificationChallenge } from "../../../lib/server-challenges";
+import { createVerificationChallenge } from "../../../lib/server-challenges-db";
+import { sendVerificationEmail } from "../../../lib/server-email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +36,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "نوع درخواست کد نامعتبر است." }, { status: 400 });
   }
 
-  const result = createVerificationChallenge(email, purpose);
+  const result = await createVerificationChallenge(email, purpose);
+  const emailResult = await sendVerificationEmail({ email, code: result.challenge.code, purpose });
+  if (!emailResult.ok) {
+    return NextResponse.json(
+      { error: "ارسال ایمیل انجام نشد. تنظیمات سرویس ایمیل در Vercel کامل نشده است." },
+      { status: 503 },
+    );
+  }
   const response: {
     challengeId: string;
     expiresAt: number;

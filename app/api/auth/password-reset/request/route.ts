@@ -4,7 +4,8 @@ import {
   isValidNationalId,
   normalizeNationalId,
 } from "../../../../lib/server-accounts-db";
-import { createVerificationChallenge } from "../../../../lib/server-challenges";
+import { createVerificationChallenge } from "../../../../lib/server-challenges-db";
+import { sendVerificationEmail } from "../../../../lib/server-email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,7 +53,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = createVerificationChallenge(email, "resetPassword");
+  const result = await createVerificationChallenge(email, "resetPassword");
+  const emailResult = await sendVerificationEmail({
+    email,
+    code: result.challenge.code,
+    purpose: "resetPassword",
+  });
+  if (!emailResult.ok) {
+    return NextResponse.json(
+      { error: "ارسال ایمیل انجام نشد. تنظیمات سرویس ایمیل در Vercel کامل نشده است." },
+      { status: 503 },
+    );
+  }
   const response: {
     challengeId: string;
     expiresAt: number;
