@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import JalaliDatePicker from "./JalaliDatePicker";
 import { createCaseInDatabase, formatAmount, normalizeAmount, toLatinDigits, toPersianDigits, updateCaseInDatabase, type CaseRecord } from "../lib/cases";
-import { getCurrentExpert } from "../lib/experts";
 
 type CaseFormData = Pick<
   CaseRecord,
@@ -62,12 +61,6 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       return;
     }
 
-    const expert = getCurrentExpert();
-    if (!expert) {
-      setError("حساب کارشناس پیدا نشد؛ لطفاً دوباره وارد شوید.");
-      return;
-    }
-
     for (const fieldName of phoneFields) {
       const phone = normalizePhone(data[fieldName] ?? "");
       if (phone && !/^09\d{9}$/.test(phone)) {
@@ -97,15 +90,13 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       description: data.description ?? "",
     };
 
-    if (initialCase) {
-      try {
+    try {
         const saved = initialCase
           ? await updateCaseInDatabase(initialCase.id, formData)
           : await createCaseInDatabase(formData);
         router.push(`/cases/${saved.id}`);
       } catch (saveError) {
         setError(saveError instanceof Error ? saveError.message : "ذخیره پرونده انجام نشد.");
-      }
     }
   }
 
