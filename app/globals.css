@@ -2484,7 +2484,8 @@ textarea:focus {
 }
 
 .app-sidebar nav a {
-  color: #b9d9ce !important;
+  color: #ffffff !important;
+  font-weight: 800;
 }
 
 .app-sidebar nav a:hover {
@@ -2557,7 +2558,7 @@ textarea:focus {
 .app-sidebar .sidebar-guest {
   border-color: rgba(192, 237, 222, 0.16);
   background: rgba(255, 255, 255, 0.06);
-  color: #a8d0c2;
+  color: #f2fffb;
 }
 
 .sidebar-system-meta {

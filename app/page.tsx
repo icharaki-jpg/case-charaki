@@ -31,14 +31,12 @@ const statusItems: Array<{
 export default function DashboardPage() {
   const [cases, setCases] = useState<CaseRecord[]>([]);
   const [unassignedCount, setUnassignedCount] = useState(0);
-  const [expertName, setExpertName] = useState("");
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderDays, setReminderDays] = useState(2);
 
   useEffect(() => {
     async function loadDashboardData() {
       const expert = getCurrentExpert();
-      setExpertName(expert?.fullName ?? "");
       setReminderEnabled(expert?.meetingReminderEnabled ?? true);
       setReminderDays(normalizeMeetingReminderDays(expert?.meetingReminderDays));
       try {
@@ -146,11 +144,6 @@ export default function DashboardPage() {
         <div>
           <p className="eyebrow dashboard-eyebrow">داشبورد مدیریتی</p>
           <h1>نمای کلی پرونده‌های کارشناسی</h1>
-          <p className="muted">
-            {expertName
-              ? `آمار و پرونده‌های اختصاصی ${expertName}`
-              : "برای مشاهده آمار اختصاصی، وارد حساب کارشناس شوید."}
-          </p>
         </div>
       </header>
 

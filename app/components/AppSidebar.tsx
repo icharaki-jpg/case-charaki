@@ -168,9 +168,8 @@ export default function AppSidebar() {
                 <Image src="/group-jahesh-logo.png" alt="لوگوی گروه جهش" width={38} height={38} priority />
               </div>
               <div className="sidebar-account-details">
-                <strong>{expert.fullName}</strong>
-                <span>پروفایل من</span>
-                <small>حساب تأییدشده</small>
+                <strong>پروفایل من</strong>
+                <span>{expert.fullName}</span>
               </div>
               <span className="sidebar-account-chevron" aria-hidden="true">‹</span>
             </Link>
