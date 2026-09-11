@@ -13,7 +13,7 @@ import {
   type ExpertRecord,
 } from "../lib/experts";
 
-type MenuIconName = "dashboard" | "new-case" | "cases" | "report";
+type MenuIconName = "dashboard" | "new-case" | "cases" | "fees" | "report";
 
 function MenuIcon({ name }: { name: MenuIconName }) {
   const common = {
@@ -58,6 +58,12 @@ function MenuIcon({ name }: { name: MenuIconName }) {
         <>
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
           <path d="M14 2v6h6M8 18v-3M12 18v-6M16 18v-9" />
+        </>
+      )}
+      {name === "fees" && (
+        <>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7v10M15 9.5c-.7-.7-1.7-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.3-3-1" />
         </>
       )}
     </svg>
@@ -130,6 +136,11 @@ export default function AppSidebar() {
       requiresAuth: true,
     },
     {
+      title: "دستمزد کارشناسی",
+      href: "/case-fees",
+      requiresAuth: true,
+    },
+    {
       title: "گزارش‌گیری",
       href: "/reports",
       requiresAuth: true,
@@ -199,6 +210,8 @@ export default function AppSidebar() {
                   (pathname.startsWith("/cases/") && pathname !== "/cases/new")
                 : item.href === "/reports"
                   ? pathname === "/reports"
+                  : item.href === "/case-fees"
+                    ? pathname === "/case-fees"
                   : pathname === item.href || pathname.startsWith(`${item.href}/`));
           const href = locked
             ? `/login?next=${encodeURIComponent(item.href)}`
@@ -225,6 +238,8 @@ export default function AppSidebar() {
                         ? "new-case"
                         : item.href === "/cases"
                           ? "cases"
+                        : item.href === "/case-fees"
+                          ? "fees"
                         : "report"
                   }
                 />
