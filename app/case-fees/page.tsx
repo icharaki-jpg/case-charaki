@@ -75,6 +75,14 @@ export default function CaseFeesPage() {
             <h1>دستمزد کارشناسی</h1>
             <p className="muted">پیگیری مبلغ علی‌الحساب، تفاوت دستمزد و وضعیت وصول هر پرونده.</p>
           </div>
+          <a
+            href="https://auditor.charaki.ir/"
+            target="_blank"
+            rel="noreferrer"
+            className="button button-secondary"
+          >
+            محاسبه دستمزد
+          </a>
         </div>
 
         <section className="content-card case-fees-card">
