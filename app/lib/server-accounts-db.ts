@@ -8,7 +8,22 @@ import { expertAccounts, experts } from "../../db/schema";
 const passwordSaltBytes = 16;
 const passwordKeyBytes = 64;
 
-export async function registerServerExpertAccount(input: { email: string; nationalId: string; password: string }) {
+export type ServerExpertProfile = {
+  fullName?: string;
+  phone?: string;
+  expertise?: string;
+  licenseNumber?: string;
+  membershipDate?: string;
+  address?: string;
+  notes?: string;
+};
+
+export async function registerServerExpertAccount(input: {
+  email: string;
+  nationalId: string;
+  password: string;
+  profile?: ServerExpertProfile;
+}) {
   const email = input.email.trim().toLowerCase();
   const nationalId = normalizeNationalId(input.nationalId);
   if (!isValidNationalId(nationalId)) return { ok: false as const, reason: "nationalId" as const };
@@ -18,10 +33,19 @@ export async function registerServerExpertAccount(input: { email: string; nation
     .where(or(eq(experts.email, email), eq(experts.nationalId, nationalId))).limit(1);
   if (existing?.email === email) return { ok: false as const, reason: "emailExists" as const };
   if (existing?.nationalId === nationalId) return { ok: false as const, reason: "nationalIdExists" as const };
+  const profile = input.profile ?? {};
   const [expert] = await db.insert(experts).values({
-    fullName: "", nationalId, phone: "", email, expertise: "", licenseNumber: "",
-    membershipDate: new Date().toISOString().slice(0, 10), address: "", notes: "",
-    status: "active", verificationStatus: "verified",
+    fullName: profile.fullName?.trim() ?? "",
+    nationalId,
+    phone: profile.phone?.trim() ?? "",
+    email,
+    expertise: profile.expertise?.trim() ?? "",
+    licenseNumber: profile.licenseNumber?.trim() ?? "",
+    membershipDate: profile.membershipDate?.trim() || new Date().toISOString().slice(0, 10),
+    address: profile.address?.trim() ?? "",
+    notes: profile.notes?.trim() ?? "",
+    status: "active",
+    verificationStatus: "verified",
   }).returning();
   const [account] = await db.insert(expertAccounts).values({
     expertId: expert.id, email, nationalId, passwordCredential: createPasswordCredential(input.password),

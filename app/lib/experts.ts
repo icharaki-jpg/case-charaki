@@ -76,6 +76,11 @@ function saveExperts(experts: ExpertRecord[]) {
   window.localStorage.setItem(storageKey, JSON.stringify(experts));
 }
 
+export function cacheExpert(expert: ExpertRecord) {
+  if (typeof window === "undefined") return;
+  saveExperts([expert, ...getExperts().filter((item) => item.id !== expert.id)]);
+}
+
 export function addExpert(data: Omit<ExpertRecord, "id" | "createdAt" | "status">) {
   const expert: ExpertRecord = {
     ...data,
@@ -327,9 +332,30 @@ export async function loginExpert(nationalIdValue: string, password: string) {
     throw new Error(body.error || "کد ملی یا رمز عبور نادرست است.");
   }
 
-  const serverExpert = body.expert as ExpertRecord | null | undefined;
+  let serverExpert = body.expert as ExpertRecord | null | undefined;
+  if (
+    serverExpert &&
+    !serverExpert.fullName.trim() &&
+    localExpert?.fullName.trim() &&
+    localExpert.expertise.trim()
+  ) {
+    try {
+      serverExpert = await updateExpertProfileOnServer({
+        fullName: localExpert.fullName,
+        phone: localExpert.phone,
+        expertise: localExpert.expertise,
+        licenseNumber: localExpert.licenseNumber,
+        address: localExpert.address,
+        notes: localExpert.notes,
+        meetingReminderEnabled: localExpert.meetingReminderEnabled ?? true,
+        meetingReminderDays: localExpert.meetingReminderDays ?? 2,
+      });
+    } catch {
+      // The login itself remains successful; the profile can be saved from /profile.
+    }
+  }
   if (serverExpert) {
-    saveExperts([serverExpert, ...getExperts().filter((item) => item.id !== serverExpert.id)]);
+    cacheExpert(serverExpert);
     window.localStorage.setItem(
       sessionKey,
       JSON.stringify({ expertId: serverExpert.id, loggedInAt: new Date().toISOString() }),
@@ -438,6 +464,15 @@ export async function verifyServerCode(emailValue: string, codeValue: string) {
       code: codeValue.trim(),
       nationalId: expert.nationalId,
       password,
+      profile: {
+        fullName: expert.fullName,
+        phone: expert.phone,
+        expertise: expert.expertise,
+        licenseNumber: expert.licenseNumber,
+        membershipDate: expert.membershipDate,
+        address: expert.address,
+        notes: expert.notes,
+      },
     }),
   });
   const body = await readJsonResponse(response);
@@ -448,6 +483,37 @@ export async function verifyServerCode(emailValue: string, codeValue: string) {
     throw new Error(body.error || "تأیید کد انجام نشد.");
   }
   return body;
+}
+
+export async function fetchCurrentExpertFromServer() {
+  const response = await fetch("/api/experts/me", {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  if (response.status === 401 || response.status === 404) return undefined;
+  const body = await readJsonResponse(response);
+  if (!response.ok || !body.expert) {
+    throw new Error(body.error || "اطلاعات پروفایل دریافت نشد.");
+  }
+  return body.expert as ExpertRecord;
+}
+
+export async function updateExpertProfileOnServer(data: ExpertProfileUpdate) {
+  const response = await fetch("/api/experts/me", {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const body = await readJsonResponse(response);
+  if (!response.ok || !body.expert) {
+    throw new Error(body.error || "ذخیره اطلاعات پروفایل انجام نشد.");
+  }
+  const expert = body.expert as ExpertRecord;
+  cacheExpert(expert);
+  window.dispatchEvent(new Event("expert-auth-changed"));
+  return expert;
 }
 
 export async function hasServerSession(emailValue?: string) {

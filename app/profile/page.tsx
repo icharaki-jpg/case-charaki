@@ -6,11 +6,12 @@ import AuthGate from "../components/AuthGate";
 import { formatDate, toLatinDigits, toPersianDigits } from "../lib/cases";
 import {
   changeExpertPassword,
+  fetchCurrentExpertFromServer,
   getCurrentExpert,
   normalizeMeetingReminderDays,
   type ExpertProfileUpdate,
   type ExpertRecord,
-  updateExpertProfile,
+  updateExpertProfileOnServer,
 } from "../lib/experts";
 
 const emptyProfile: ExpertProfileUpdate = {
@@ -36,8 +37,10 @@ export default function ProfilePage() {
   const [passwordMessage, setPasswordMessage] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const currentExpert = getCurrentExpert();
+    let cancelled = false;
+
+    const applyExpert = (currentExpert?: ExpertRecord) => {
+      if (cancelled) return;
       setExpert(currentExpert);
       if (currentExpert) {
         setProfile({
@@ -51,8 +54,26 @@ export default function ProfilePage() {
           meetingReminderDays: normalizeMeetingReminderDays(currentExpert.meetingReminderDays),
         });
       }
+    };
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const serverExpert = await fetchCurrentExpertFromServer();
+          if (serverExpert) {
+            applyExpert(serverExpert);
+            return;
+          }
+        } catch {
+          // Fall back to the local cache while showing the profile page.
+        }
+        applyExpert(getCurrentExpert());
+      })();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   function updateProfileField<K extends keyof ExpertProfileUpdate>(
@@ -62,7 +83,7 @@ export default function ProfilePage() {
     setProfile((current) => ({ ...current, [field]: value }));
   }
 
-  function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setProfileError("");
     setProfileMessage("");
@@ -92,7 +113,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const updatedExpert = updateExpertProfile(expert.id, {
+      const updatedExpert = await updateExpertProfileOnServer({
         ...profile,
         fullName: profile.fullName.trim(),
         phone,

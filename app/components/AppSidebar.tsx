@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatDate } from "../lib/cases";
 import {
+  fetchCurrentExpertFromServer,
   getCurrentExpert,
   hasServerSession,
   logoutExpert,
@@ -80,14 +81,14 @@ export default function AppSidebar() {
     let cancelled = false;
 
     async function syncAuth() {
-      const currentExpert = getCurrentExpert();
-      if (!currentExpert) {
-        if (!cancelled) setExpert(undefined);
-        return;
-      }
-
       try {
-        const sessionIsValid = await hasServerSession(currentExpert.email);
+        const serverExpert = await fetchCurrentExpertFromServer();
+        if (serverExpert) {
+          if (!cancelled) setExpert(serverExpert);
+          return;
+        }
+        const currentExpert = getCurrentExpert();
+        const sessionIsValid = currentExpert ? await hasServerSession(currentExpert.email) : false;
         if (!cancelled) {
           setExpert(sessionIsValid ? currentExpert : undefined);
         }

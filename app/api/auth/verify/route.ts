@@ -36,6 +36,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "اطلاعات تأیید کامل نیست." }, { status: 400 });
   }
 
+  const profile = isRecord(body.profile)
+    ? {
+        fullName: typeof body.profile.fullName === "string" ? body.profile.fullName : "",
+        phone: typeof body.profile.phone === "string" ? body.profile.phone : "",
+        expertise: typeof body.profile.expertise === "string" ? body.profile.expertise : "",
+        licenseNumber: typeof body.profile.licenseNumber === "string" ? body.profile.licenseNumber : "",
+        membershipDate: typeof body.profile.membershipDate === "string" ? body.profile.membershipDate : "",
+        address: typeof body.profile.address === "string" ? body.profile.address : "",
+        notes: typeof body.profile.notes === "string" ? body.profile.notes : "",
+      }
+    : undefined;
+
+  if (profile && (!profile.fullName.trim() || !profile.expertise.trim())) {
+    return NextResponse.json({ error: "نام و رشته کارشناسی الزامی است." }, { status: 400 });
+  }
+
   const nationalId = normalizeNationalId(body.nationalId.trim());
   if (!isValidNationalId(nationalId)) {
     return NextResponse.json({ error: "کد ملی باید ۱۰ رقم باشد." }, { status: 400 });
@@ -68,6 +84,7 @@ export async function POST(request: Request) {
     email: result.email,
     nationalId,
     password: body.password,
+    profile,
   });
   if (!account.ok) {
     const message =
