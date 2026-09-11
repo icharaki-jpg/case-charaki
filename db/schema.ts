@@ -107,7 +107,7 @@ export const caseFees = pgTable(
       .notNull()
       .references(() => experts.id, { onDelete: "cascade" }),
     differenceFee: text("difference_fee").notNull().default(""),
-    status: text("status").notNull().default("sendToCenter"),
+    status: text("status").notNull().default("unselected"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

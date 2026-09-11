@@ -95,6 +95,7 @@ export default function CaseFeesPage() {
             />
             <select aria-label="فیلتر وضعیت دستمزد" value={status} onChange={(event) => changeStatus(event.target.value as "all" | CaseFeeStatus)}>
               <option value="all">همه وضعیت‌ها</option>
+              <option value="unselected">انتخاب وضعیت</option>
               <option value="sendToCenter">ارسال به کانون یا مرکز</option>
               <option value="followUp">پیگیری جهت وصول</option>
               <option value="collected">وصول شده</option>
@@ -177,6 +178,7 @@ function FeeRow({ item, onSaved }: { item: CaseFeeRecord; onSaved: (updated: Par
       </td>
       <td>
         <select className="case-fee-status-select" value={status} onChange={(event) => setStatus(event.target.value as CaseFeeStatus)} aria-label={`وضعیت دستمزد پرونده ${item.caseNumber}`}>
+          <option value="unselected">انتخاب وضعیت</option>
           <option value="sendToCenter">ارسال به کانون یا مرکز</option>
           <option value="followUp">پیگیری جهت وصول</option>
           <option value="collected">وصول شده</option>

@@ -7,7 +7,7 @@ import { getServerSession } from "../../../lib/server-session-db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const feeStatuses = ["sendToCenter", "followUp", "collected"] as const;
+const feeStatuses = ["unselected", "sendToCenter", "followUp", "collected"] as const;
 type FeeStatus = (typeof feeStatuses)[number];
 
 export async function PATCH(request: Request, context: { params: Promise<{ caseId: string }> }) {

@@ -1,6 +1,6 @@
 import { formatAmount, normalizeAmount } from "./cases";
 
-export type CaseFeeStatus = "sendToCenter" | "followUp" | "collected";
+export type CaseFeeStatus = "unselected" | "sendToCenter" | "followUp" | "collected";
 
 export type CaseFeeRecord = {
   caseId: string;
@@ -15,6 +15,7 @@ export type CaseFeeRecord = {
 };
 
 export const caseFeeStatusLabels: Record<CaseFeeStatus, string> = {
+  unselected: "انتخاب وضعیت",
   sendToCenter: "ارسال به کانون یا مرکز",
   followUp: "پیگیری جهت وصول",
   collected: "وصول شده",

@@ -7,7 +7,7 @@ import { getServerSession } from "../../lib/server-session-db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const feeStatuses = ["sendToCenter", "followUp", "collected"] as const;
+export const feeStatuses = ["unselected", "sendToCenter", "followUp", "collected"] as const;
 export type FeeStatus = (typeof feeStatuses)[number];
 
 export async function GET(request: Request) {
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       fees: rows.map((row) => ({
         ...row,
         differenceFee: row.differenceFee ?? "",
-        status: isFeeStatus(row.status) ? row.status : "sendToCenter",
+        status: isFeeStatus(row.status) ? row.status : "unselected",
         updatedAt: row.updatedAt?.toISOString() ?? null,
       })),
     });
