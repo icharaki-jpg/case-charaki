@@ -96,8 +96,30 @@ export const cases = pgTable(
   }),
 );
 
+export const caseFees = pgTable(
+  "case_fees",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    caseId: uuid("case_id")
+      .notNull()
+      .references(() => cases.id, { onDelete: "cascade" }),
+    expertId: uuid("expert_id")
+      .notNull()
+      .references(() => experts.id, { onDelete: "cascade" }),
+    differenceFee: text("difference_fee").notNull().default(""),
+    status: text("status").notNull().default("sendToCenter"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    caseUnique: uniqueIndex("case_fees_case_unique").on(table.caseId),
+  }),
+);
+
 export type Expert = typeof experts.$inferSelect;
 export type NewExpert = typeof experts.$inferInsert;
 export type ExpertAccount = typeof expertAccounts.$inferSelect;
 export type Case = typeof cases.$inferSelect;
 export type NewCase = typeof cases.$inferInsert;
+export type CaseFee = typeof caseFees.$inferSelect;
+export type NewCaseFee = typeof caseFees.$inferInsert;

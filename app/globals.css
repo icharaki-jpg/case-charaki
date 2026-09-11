@@ -142,6 +142,78 @@ button {
   line-height: 1.95;
 }
 
+.case-fees-card {
+  overflow: hidden;
+}
+
+.case-fees-filters {
+  margin-bottom: 22px;
+}
+
+.case-fees-table {
+  min-width: 980px;
+}
+
+.case-fees-table th,
+.case-fees-table td {
+  vertical-align: middle;
+}
+
+.case-fees-table th {
+  white-space: nowrap;
+}
+
+.fee-amount {
+  color: #116b58;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.case-fee-difference-input,
+.case-fee-status-select {
+  min-height: 40px;
+  border: 1px solid #d7e8e1;
+  border-radius: 10px;
+  background: #fbfefd;
+  color: #17342e;
+  font-size: 11px;
+  outline: none;
+  padding: 8px 10px;
+}
+
+.case-fee-difference-input {
+  width: 150px;
+  text-align: right;
+}
+
+.case-fee-status-select {
+  width: 190px;
+}
+
+.case-fee-difference-input:focus,
+.case-fee-status-select:focus {
+  border-color: #35b99d;
+  box-shadow: 0 0 0 3px rgba(53, 185, 157, 0.12);
+}
+
+.case-fee-save {
+  min-height: 40px;
+  padding: 10px 15px;
+  white-space: nowrap;
+}
+
+.case-fee-message {
+  display: block;
+  margin-top: 5px;
+  color: #c23b52;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.case-fee-message.success {
+  color: #168263;
+}
+
 .button {
   display: inline-flex;
   min-height: 46px;
