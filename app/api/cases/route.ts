@@ -37,6 +37,9 @@ export async function POST(request: Request) {
   if (!current) return NextResponse.json({ error: "احراز هویت لازم است." }, { status: 401 });
   const body = await readBody(request);
   if (!body) return NextResponse.json({ error: "بدنه درخواست نامعتبر است." }, { status: 400 });
+  if (typeof body.advanceFee !== "string" || !body.advanceFee.trim()) {
+    return NextResponse.json({ error: "مبلغ دستمزد علی‌الحساب الزامی است." }, { status: 400 });
+  }
   try {
     const db = getDb();
     const expert = await db.select({ id: experts.id })

@@ -49,6 +49,9 @@ async function mutate(request: Request, context: { params: Promise<{ id: string 
       return NextResponse.json({ deleted: true });
     }
     const body = await request.json();
+    if (typeof body.advanceFee !== "string" || !body.advanceFee.trim()) {
+      return NextResponse.json({ error: "مبلغ دستمزد علی‌الحساب الزامی است." }, { status: 400 });
+    }
     const updated = await db.update(cases).set({ ...body, updatedAt: new Date() }).where(filter).returning();
     if (!updated[0]) return NextResponse.json({ error: "پرونده پیدا نشد." }, { status: 404 });
     return NextResponse.json({ case: updated[0] });

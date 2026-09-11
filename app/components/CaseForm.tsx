@@ -57,6 +57,11 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       setError("لطفاً همه‌ی فیلدهای ضروری پرونده را تکمیل کنید.");
       return;
     }
+    const advanceFee = normalizeAmount(data.advanceFee ?? "");
+    if (!advanceFee) {
+      setError("مبلغ دستمزد علی‌الحساب الزامی است.");
+      return;
+    }
     if (data.deadline < data.referralDate) {
       setError("مهلت ارائه نظر نمی‌تواند قبل از تاریخ ارجاع باشد.");
       return;
@@ -84,7 +89,7 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
       meetingDate: data.meetingDate ?? "",
       meetingTime,
       deadline: data.deadline,
-      advanceFee: normalizeAmount(data.advanceFee ?? ""),
+      advanceFee,
       claimant: data.claimant,
       claimantPhone: data.claimantPhone,
       respondent: data.respondent,
@@ -127,7 +132,7 @@ export default function CaseForm({ initialCase, submitLabel = "ثبت پروند
         <Field label="وکیل خوانده / مشتکی‌عنه" name="respondentLawyer" placeholder="در صورت وجود" defaultValue={initialCase?.respondentLawyer} />
         <Field label="شماره تلفن وکیل خوانده / مشتکی‌عنه" name="respondentLawyerPhone" placeholder="اختیاری؛ مانند ۰۹۱۲۱۲۳۴۵۶۷" defaultValue={toPersianDigits(initialCase?.respondentLawyerPhone ?? "")} type="tel" inputMode="tel" maxLength={11} numeric />
         <Field label="توضیحات تکمیلی" name="description" placeholder="توضیحات پرونده" defaultValue={initialCase?.description} wide textarea />
-        <Field label="مبلغ دستمزد علی‌الحساب" name="advanceFee" placeholder="مثلاً ۵۰٬۰۰۰٬۰۰۰" defaultValue={formatAmount(initialCase?.advanceFee)} inputMode="numeric" amount />
+        <Field label="مبلغ دستمزد علی‌الحساب" name="advanceFee" placeholder="مثلاً ۵۰٬۰۰۰٬۰۰۰" defaultValue={formatAmount(initialCase?.advanceFee)} inputMode="numeric" amount required />
       </div>
       {error && <p className="form-error">{error}</p>}
       <div className="form-actions">
