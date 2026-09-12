@@ -10,6 +10,11 @@ import AppSidebar from "./components/AppSidebar";
 export const metadata = {
   title: "سامانه پرونده‌های کارشناسی",
   description: "مدیریت و پیگیری پرونده‌های کارشناسی",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
